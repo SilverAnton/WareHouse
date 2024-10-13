@@ -2,17 +2,22 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from models.products import Product
-from schemas.product import ProductCreate, ProductResponse, ProductListResponse, ProductUpdate, ProductDelete
+from schemas.product import (
+    ProductCreate,
+    ProductResponse,
+    ProductListResponse,
+    ProductUpdate,
+    ProductDelete,
+)
 from config.db import async_session_maker
-from fastapi import Query
 
 
 router = APIRouter()
 
+
 async def get_db() -> AsyncSession:
     async with async_session_maker() as session:
         yield session
-
 
 
 @router.post("/", response_model=ProductResponse)
@@ -23,11 +28,13 @@ async def create_product(product: ProductCreate, db: AsyncSession = Depends(get_
     await db.refresh(db_product)
     return db_product
 
+
 @router.get("/", response_model=ProductListResponse)
 async def get_products(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Product))
     products = result.scalars().all()
     return ProductListResponse(products=products)
+
 
 @router.get("/{id}", response_model=ProductResponse)
 async def get_product(id: int, db: AsyncSession = Depends(get_db)):
@@ -38,7 +45,9 @@ async def get_product(id: int, db: AsyncSession = Depends(get_db)):
 
 
 @router.put("/{id}", response_model=ProductResponse)
-async def update_product(id: int, product_update: ProductUpdate, db: AsyncSession = Depends(get_db)):
+async def update_product(
+    id: int, product_update: ProductUpdate, db: AsyncSession = Depends(get_db)
+):
     product = await db.get(Product, id)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")

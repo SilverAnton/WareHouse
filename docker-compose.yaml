@@ -1,0 +1,37 @@
+version: "3.8"  # Версия Docker Compose
+
+services:
+
+  db:
+    image: postgres:16-alpine  # Образ PostgreSQL
+    restart: on-failure  # Перезапуск при сбое
+    env_file:
+      - .env  # Файл окружения
+    expose:
+      - "5432:5432"  # Экспонирование порта
+    volumes:
+      - pg_data:/var/lib/postgresql/data  # Том для хранения данных
+    healthcheck:  # Проверка работоспособности
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]  # Проверка готовности базы данных
+      interval: 10s  # Интервал проверки
+      retries: 5  # Количество попыток
+      timeout: 5s  # Таймаут
+
+  app:
+    build: .  # Сборка приложения из Dockerfile
+    tty: true  # Подключение терминала
+    ports:
+      - "8000:8000"  # Проброс порта приложения
+    command: sh -c "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"  # Команда для запуска приложения
+    depends_on:
+      db:
+        condition: service_healthy  # Зависимость от состояния сервиса базы данных
+    volumes:
+      - .:/app  # Монтирование текущей директории в контейнер
+    env_file:
+      - .env  # Файл окружения
+
+
+
+volumes:
+  pg_data:  # Том для хранения данных PostgreSQL

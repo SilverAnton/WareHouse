@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import List
 
+
 class ProductCreate(BaseModel):
     name: str
     description: str | None = None
@@ -28,6 +29,7 @@ class ProductListResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class ProductUpdate(BaseModel):
     name: str | None = None
     description: str | None = None
@@ -36,6 +38,7 @@ class ProductUpdate(BaseModel):
 
     class Config:
         from_attributes = True
+
 
 class ProductDelete(BaseModel):
     id: int
